@@ -1,0 +1,18 @@
+# frozen_string_literal: true
+
+require 'csv'
+questions = CSV.read('problems.csv')
+count = 0
+puts '***Welcom to the Quiz***'
+questions.length.times do |x|
+  puts "Question #{x + 1}: #{questions[x][0]}"
+  if questions[x][1] == gets.chomp
+    count += 1
+    puts 'Correct Answer!'
+  else
+    puts 'Wrong Answer!'
+  end
+end
+puts '**********RESULT**********'
+puts "Total Questions: #{questions.length}"
+puts "Questions Answered Correctly: #{count}"
