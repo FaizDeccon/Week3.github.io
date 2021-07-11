@@ -1,25 +1,11 @@
 # frozen_string_literal: true
 
-module Tools
+module Year
   @values = [0, -1000, 1000, -1000, '', '', '']
-  @values_mon = [0, 0, 0, 0, 0, 0]
   @month = %w[Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec]
   @months = Hash['1' => 'January', '2' => 'Febuary', '3' => 'March', '4' => 'April',
                  '5' => 'May', '6' => 'June', '7' => 'July', '8' => 'August',
                  '9' => 'September', '10' => 'October', '11' => 'November', '12' => 'December']
-  @month_names = Hash['1' => 'Jan', '2' => 'Feb', '3' => 'Mar', '4' => 'Apr',
-                      '5' => 'May', '6' => 'Jun', '7' => 'Jul', '8' => 'Aug',
-                      '9' => 'Sep', '10' => 'Oct', '11' => 'Nov', '12' => 'Dec']
-  def print_year_data
-    if @values[0].positive?
-      print_max_temp
-      print_min_temp
-      print_max_humid
-    else
-      puts 'No data found for the given year!'
-    end
-  end
-
   def print_max_temp
     puts "Highest: #{@values[1]}C on #{@months[@values[4].split('-')[1]]} #{@values[4].split('-')[2]}"
   end
@@ -32,6 +18,55 @@ module Tools
     puts "Humid: #{@values[3]}% on #{@months[@values[6].split('-')[1]]} #{@values[6].split('-')[2]}"
   end
 
+  def print_year_data
+    if @values[0].positive?
+      print_max_temp
+      print_min_temp
+      print_max_humid
+    else
+      puts 'No data found for the given year!'
+    end
+  end
+
+  def compare_max(line, num1, num2)
+    return unless line.split(',')[num2].to_i > @values[num1]
+
+    @values[num1] = line.split(',')[num2].to_i
+    @values[num1 + 3] = line.split(',')[0]
+  end
+
+  def compare_min(line, num1, num2)
+    return unless line.split(',')[num2].to_i < @values[num1] && line.split(',')[num2] != ''
+
+    @values[num1] = line.split(',')[num2].to_i
+    @values[num1 + 3] = line.split(',')[0]
+  end
+
+  def year_func(folderpath, filename)
+    @month.each do |m|
+      filepath = "#{folderpath}/#{filename}#{m}.txt"
+      next unless File.exist?(filepath)
+
+      file = File.open(filepath, 'r')
+      file.readlines.drop(1).each do |line|
+        compare_max(line, 1, 1)
+        compare_min(line, 2, 3)
+        compare_max(line, 3, 7)
+        @values[0] += 1
+      end
+    end
+    print_year_data
+  end
+end
+
+module Month
+  @values_mon = [0, 0, 0, 0, 0, 0]
+  @months = Hash['1' => 'January', '2' => 'Febuary', '3' => 'March', '4' => 'April',
+                 '5' => 'May', '6' => 'June', '7' => 'July', '8' => 'August',
+                 '9' => 'September', '10' => 'October', '11' => 'November', '12' => 'December']
+  @month_names = Hash['1' => 'Jan', '2' => 'Feb', '3' => 'Mar', '4' => 'Apr',
+                      '5' => 'May', '6' => 'Jun', '7' => 'Jul', '8' => 'Aug',
+                      '9' => 'Sep', '10' => 'Oct', '11' => 'Nov', '12' => 'Dec']
   def print_month_data
     puts "Highest Average: #{@values_mon[3] / @values_mon[0]}C"
     puts "Lowest Average: #{@values_mon[4] / @values_mon[1]}C"
@@ -73,20 +108,6 @@ module Tools
     end
   end
 
-  def compare_max(line, num1, num2)
-    return unless line.split(',')[num2].to_i > @values[num1]
-
-    @values[num1] = line.split(',')[num2].to_i
-    @values[num1 + 3] = line.split(',')[0]
-  end
-
-  def compare_min(line, num1, num2)
-    return unless line.split(',')[num2].to_i < @values[num1] && line.split(',')[num2] != ''
-
-    @values[num1] = line.split(',')[num2].to_i
-    @values[num1 + 3] = line.split(',')[0]
-  end
-
   def set_month_data(line, num1, num2)
     return unless line.split(',')[num2] != ''
 
@@ -94,26 +115,9 @@ module Tools
     @values_mon[num1] += 1
   end
 
-  def year_func(folderpath, filename)
-    @month.each do |m|
-      filepath = "#{folderpath}/#{filename}#{m}.txt"
-      next unless File.exist?(filepath)
-
-      file = File.open(filepath, 'r')
-      file.readlines.drop(1).each do |line|
-        compare_max(line, 1, 1)
-        compare_min(line, 2, 3)
-        compare_max(line, 3, 7)
-        @values[0] += 1
-      end
-    end
-    print_year_data
-  end
-
   def mon_func(folderpath, filename, monthnum)
     filepath = "#{folderpath}/#{filename}#{@month_names[monthnum]}.txt"
     if File.exist?(filepath)
-      # puts "#{@months[monthnum]} #{year}"
       File.readlines(filepath).drop(1).each do |line|
         set_month_data(line, 0, 1)
         set_month_data(line, 1, 3)
