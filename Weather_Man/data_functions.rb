@@ -42,6 +42,10 @@ module Year
     @values[num1 + 3] = line.split(',')[0]
   end
 
+  def check_invalid_data(line)
+    return true if line != '' && line.split(',')[0] != 'PKT'
+  end
+
   def year_func(folderpath, filename)
     @month.each do |m|
       filepath = "#{folderpath}/#{filename}#{m}.txt"
@@ -49,6 +53,8 @@ module Year
 
       file = File.open(filepath, 'r')
       file.readlines.drop(1).each do |line|
+        next unless check_invalid_data(line) == true
+
         compare_max(line, 1, 1)
         compare_min(line, 2, 3)
         compare_max(line, 3, 7)
@@ -115,10 +121,16 @@ module Month
     @values_mon[num1] += 1
   end
 
+  def check_invalid_data1(line, year)
+    return true if line.split(',')[0].split('-')[0] == year
+  end
+
   def mon_func(folderpath, filename, monthnum)
     filepath = "#{folderpath}/#{filename}#{@month_names[monthnum]}.txt"
     if File.exist?(filepath)
       File.readlines(filepath).drop(1).each do |line|
+        next unless check_invalid_data(line) == true
+
         set_month_data(line, 0, 1)
         set_month_data(line, 1, 3)
         set_month_data(line, 2, 7)
@@ -133,7 +145,9 @@ module Month
     filepath = "#{folderpath}/#{filename}#{@month_names[monthnum]}.txt"
     if File.exist?(filepath)
       puts "#{@months[monthnum]} #{year}"
-      File.readlines(filepath).drop(1).each do |line|
+      File.readlines(filepath).each do |line|
+        next unless check_invalid_data1(line, year) == true
+
         print_red_lines(line) if line.split(',')[1] != ''
         print_blue_lines(line) if line.split(',')[3] != ''
       end
@@ -147,6 +161,8 @@ module Month
     if File.exist?(filepath)
       puts "#{@months[monthnum]} #{year}"
       File.readlines(filepath).drop(1).each do |line|
+        next unless check_invalid_data1(line, year) == true
+
         print_multi_lines(line) if line.split(',')[1] != '' || line.split(',')[3] != ''
       end
     else
