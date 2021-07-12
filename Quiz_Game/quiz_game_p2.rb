@@ -2,16 +2,15 @@
 
 require 'csv'
 require 'timeout'
-questions = CSV.read('problems.csv')
+filename = 'problems.csv'
+filename = "#{ARGV[1]}.csv" if ARGV[0] == 'filename'
+questions = CSV.read(filename)
 count = 0
 time = 30
-print 'Enter Y if you want to change the timer or any other key if you do not: '
-if gets.chomp == 'Y'
-  print 'Enter time for the quiz: '
-  time = gets.chomp.to_i
-end
-print 'Enter Y to shuffle the questions or any other key to start the quiz: '
-questions.shuffle! if gets.chomp == 'Y'
+time = ARGV[3].to_i if ARGV[2] == 'time'
+time = ARGV[1].to_i if ARGV[0] == 'time'
+questions.shuffle! if ARGV[4] == 'shuffle' || ARGV[0] == 'shuffle' || ARGV[2] == 'shuffle'
+ARGV.clear
 puts '***Quiz Started***'
 Timeout.timeout(time, Timeout::Error) do
   puts "Time: #{time} seconds"
